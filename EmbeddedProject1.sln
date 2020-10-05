@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30523.141
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GamerX_Amplifier_VS", "GamerX_Amplifier_VS.vcxproj", "{180175E1-1E0A-45BB-A977-493E20C42A7A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|VisualGDB = Debug|VisualGDB
+		Release|VisualGDB = Release|VisualGDB
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{180175E1-1E0A-45BB-A977-493E20C42A7A}.Debug|VisualGDB.ActiveCfg = Debug|VisualGDB
+		{180175E1-1E0A-45BB-A977-493E20C42A7A}.Debug|VisualGDB.Build.0 = Debug|VisualGDB
+		{180175E1-1E0A-45BB-A977-493E20C42A7A}.Release|VisualGDB.ActiveCfg = Release|VisualGDB
+		{180175E1-1E0A-45BB-A977-493E20C42A7A}.Release|VisualGDB.Build.0 = Release|VisualGDB
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A6F38557-F64F-4892-A864-026B1419E36C}
+	EndGlobalSection
+EndGlobal
