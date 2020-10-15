@@ -7,7 +7,7 @@
     <Revision>2</Revision>
   </ToolchainVersion>
   <BspID>com.sysprogs.arm.stm32</BspID>
-  <BspVersion>2020.06</BspVersion>
+  <BspVersion>2020.10</BspVersion>
   <McuID>STM32F103C8</McuID>
   <MCUDefinitionFile>STM32F1xxxx/DeviceDefinitions/stm32f103xb.xml</MCUDefinitionFile>
   <MCUProperties>
@@ -44,7 +44,7 @@
     <AllDependencies>
       <ProjectDependency>
         <RelativePath>GamerX_Amplifier_VS.gpdsc</RelativePath>
-        <Timestamp>132463565927307482</Timestamp>
+        <Timestamp>132466478462359993</Timestamp>
       </ProjectDependency>
     </AllDependencies>
     <RootDirectory>
