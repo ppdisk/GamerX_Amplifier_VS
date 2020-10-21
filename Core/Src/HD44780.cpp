@@ -7,6 +7,44 @@
 
 #include "HD44780.h"
 
+
+#define d4_set() HAL_GPIO_WritePin(D4_Port, D4_Pin, GPIO_PIN_SET)
+#define d5_set() HAL_GPIO_WritePin(D5_Port, D5_Pin, GPIO_PIN_SET)
+#define d6_set() HAL_GPIO_WritePin(D6_Port, D6_Pin, GPIO_PIN_SET)
+#define d7_set() HAL_GPIO_WritePin(D7_Port, D7_Pin, GPIO_PIN_SET)
+
+#define d4_reset() HAL_GPIO_WritePin(D4_Port, D4_Pin, GPIO_PIN_RESET)
+#define d5_reset() HAL_GPIO_WritePin(D5_Port, D5_Pin, GPIO_PIN_RESET)
+#define d6_reset() HAL_GPIO_WritePin(D6_Port, D6_Pin, GPIO_PIN_RESET)
+#define d7_reset() HAL_GPIO_WritePin(D7_Port, D7_Pin, GPIO_PIN_RESET)
+
+#define e1 HAL_GPIO_WritePin(E_Port, E_Pin, GPIO_PIN_SET)
+#define e0 HAL_GPIO_WritePin(E_Port, E_Pin, GPIO_PIN_RESET)
+
+
+#define rs1 HAL_GPIO_WritePin(RS_Port, RS_Pin, GPIO_PIN_SET)
+#define rs0 HAL_GPIO_WritePin(RS_Port, RS_Pin, GPIO_PIN_RESET)
+
+void HD44780::DWT_DelayUpdate(void)
+{
+	Delay_ms = SystemCoreClock / 1000;    // Число тактов ядра за миллисекунду.
+	Delay_us = SystemCoreClock / 1000000; // Число тактов ядра за микросекунду.
+}
+
+void HD44780::DWT_Init(void)
+{
+	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+	DWT_DelayUpdate();
+}
+
+void HD44780::DWT_Delay_us(uint32_t us) // В микросекундах.
+{
+	uint32_t Count = DWT->CYCCNT;
+	us = us * Delay_us;
+	while ((DWT->CYCCNT - Count) < us) ;
+}
+
 HD44780::HD44780(GPIO_TypeDef *RS_Port, uint16_t RS_Pin,
 		GPIO_TypeDef *RW_Port, uint16_t RW_Pin,
 		GPIO_TypeDef *E_Port, uint16_t E_Pin,
@@ -34,94 +72,145 @@ HD44780::HD44780(GPIO_TypeDef *RS_Port, uint16_t RS_Pin,
 	this->RW_Pin = RW_Pin;
 	this->E_Pin = E_Pin;
 
-
-
-
-	/* Следующий алгоритм гарантирует, что ЖК-дисплей находится в желаемом режиме:
-	 * 1.Установите D7-D4 на 0b0011 и переключите бит enable.
-	 * 2.Повторите описанное выше, установив D7-D4 на 0b0011 и снова переключив бит enable.
-	 * 3.ЖК-дисплей теперь находится в состоянии State1 или State 3. Повторите предыдущий шаг еще раз.*/
-
-	SendhalfByte(3);
-	SendhalfByte(3);
-	SendhalfByte(3);
-
-
-
-
+	DWT_Init();
+	
+	HAL_Delay(40);
+	rs0;
+	LCD_WriteData(3);
+	e1;
+	DWT_Delay_us(1);
+	e0;
+	HAL_Delay(1);
+	LCD_WriteData(3);
+	e1;
+	DWT_Delay_us(1);
+	e0;
+	HAL_Delay(1);
+	LCD_WriteData(3);
+	e1;
+	DWT_Delay_us(1);
+	e0;
+	HAL_Delay(1);
+	LCD_Command(0x28);
+	HAL_Delay(1);
+	LCD_Command(0x28);
+	HAL_Delay(1);
+	LCD_Command(0x0C);
+	HAL_Delay(1);
+	LCD_Command(0x01);
+	HAL_Delay(2);
+	LCD_Command(0x06);
+	HAL_Delay(1);
+	LCD_Command(0x02);
+	HAL_Delay(2);
+	
 }
 
 
-void HD44780::On(void)
+void HD44780::LCD_String(char* ch)
 {
+	uint8_t i = 0;
+	while (ch[i] != 0)
+	{
+		LCD_Data((uint8_t) ch[i]);
+		HAL_Delay(1);
+		i++;
+	}
+	
+}
+void HD44780::LCD_WriteData(uint8_t dt)
+{
+	if (((dt >> 3) & 0x01) == 1) {d7_set();}
+	else {d7_reset();}
+	if (((dt >> 2) & 0x01) == 1) {d6_set();}
+	else {d6_reset();}
+	if (((dt >> 1) & 0x01) == 1) {d5_set();}
+	else {d5_reset();}
+	if ((dt & 0x01) == 1) {d4_set();}
+	else {d4_reset();}
+}
 
+void HD44780::delay(void)
+{
+	DWT_Delay_us(50);
+}
+
+void HD44780::LCD_Data(uint8_t dt)
+{
+	rs1;
+	LCD_WriteData(dt >> 4);
+	e1;
+	DWT_Delay_us(1);
+	//delay();
+	e0;
+	LCD_WriteData(dt);
+	e1;
+	DWT_Delay_us(1);
+	//delay();
+	e0;
+}
+
+void HD44780::LCD_Command(uint8_t dt)
+{
+	rs0;
+	LCD_WriteData(dt >> 4);
+	e1;
+	DWT_Delay_us(1);
+	e0;
+	LCD_WriteData(dt);
+	e1;
+	DWT_Delay_us(1);
+	e0;
+}
+
+
+void HD44780::LCD_Clear(void)
+{
+	LCD_Command(0x01);
+	HAL_Delay(1);
+}
+
+void HD44780::LCD_SendChar(char ch)
+{
+	LCD_Data((uint8_t) ch);
+	for (uint8_t i = 0; i < 65; i++)
+	{
+		DWT_Delay_us(50);
+	}
+	
+}
+
+void HD44780::LCD_SetPos(uint8_t x, uint8_t y)
+{
+	switch (y)
+	{
+	case 0:
+		LCD_Command(x | 0x80);
+		break;
+	case 1:
+		LCD_Command(0x80 | 0x40 | x);
+		break;
+	case 2:
+		LCD_Command(0x80 | 0x14 | x);
+		break;
+	case 3:
+		LCD_Command(0x80 | 0x54 | x);
+		break;
+	default:
+		break;
+	}
+	
+	for (uint8_t i = 0; i < 65; i++)
+	{
+		DWT_Delay_us(50);
+	}
+	
 }
 
 void HD44780::UpdateDisplay(void)
 {
-
+	LCD_SetPos(0, 0);
+	LCD_String(StringData1);
+	LCD_SetPos(0, 1);
+	LCD_String(StringData2);
 }
-
-void HD44780::Off(void)
-{
-
-}
-
-void HD44780::Clear(void)
-{
-	SendCommand(0x01);
-}
-
-uint8_t HD44780::isBisy(void)
-{
-	return false;
-}
-
-void HD44780::WaitNotBisy(void)
-{
-	HAL_Delay(1);
-	if(isBisy())
-		WaitNotBisy();
-}
-
-void HD44780::SendCommand(uint8_t Data)
-{
-	HAL_GPIO_WritePin(RS_Port, RS_Pin, GPIO_PIN_SET);
-	SendhalfByte(Data);
-	SendhalfByte(Data<<4);
-}
-
-void HD44780::SendData(uint8_t Data)
-{
-	HAL_GPIO_WritePin(RS_Port, RS_Pin, GPIO_PIN_RESET);
-	SendhalfByte(Data);
-	SendhalfByte(Data<<4);
-}
-
-void HD44780::SendhalfByte(uint8_t Data)
-{
-	if (isBisy())
-	{
-		WaitNotBisy();
-	}
-
-	HAL_GPIO_WritePin(E_Port, E_Pin, GPIO_PIN_RESET);
-
-	HAL_GPIO_WritePin(D4_Port, D4_Pin, PinState((Data >> 3) & 1u));
-	HAL_GPIO_WritePin(D5_Port, D5_Pin, PinState((Data >> 2) & 1u));
-	HAL_GPIO_WritePin(D6_Port, D6_Pin, PinState((Data >> 1) & 1u));
-	HAL_GPIO_WritePin(D7_Port, D7_Pin, PinState((Data >> 0) & 1u));
-
-	HAL_GPIO_WritePin(E_Port, E_Pin, GPIO_PIN_SET);
-}
-
-GPIO_PinState HD44780::PinState(uint8_t Data)
-{
-	if(Data == 1)
-		return GPIO_PIN_SET;
-	else
-		return GPIO_PIN_RESET;
-}
-
-
-

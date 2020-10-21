@@ -123,16 +123,12 @@ int main(void)
 		HD44780_D6_Pin,
 		HD44780_D7_GPIO_Port,
 		HD44780_D7_Pin);
-	Display.Clear();
-	Display.On();
-
-
-	sprintf(Display.StringData1, "GamerX");
-	sprintf(Display.StringData2, "Amplifier");
-	Display.UpdateDisplay();
+	Display.LCD_Clear();
 
 	HAL_Delay(1000);
-	Display.Off();
+	Display.StringData1 = const("GamerX");
+	Display.StringData2 = "Amplifier";
+	Display.UpdateDisplay();
 
 
 	//Sensor Button init
