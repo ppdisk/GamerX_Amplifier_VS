@@ -126,7 +126,7 @@ int main(void)
 	Display.LCD_Clear();
 
 	HAL_Delay(1000);
-	Display.StringData1 = const("GamerX");
+	Display.StringData1 = "GamerX";
 	Display.StringData2 = "Amplifier";
 	Display.UpdateDisplay();
 
@@ -154,6 +154,48 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  
+	  if (sensorButton.StateChanged())
+	  {
+		  bool CurrentState = sensorButton.GetState();
+		  if (CurrentState == true)
+		  {
+			  //power on
+			  HAL_GPIO_WritePin(MOC3041_GPIO_Port, MOC3041_Pin, GPIO_PIN_RESET);
+			  Amplifire.Mute(false);
+			  sprintf(Display.StringData1, "Volume");
+			  sprintf(Display.StringData2, "%d4", Amplifire.GetMasterVolume());
+			  Display.UpdateDisplay();
+		  }
+		  else
+		  {
+			  //power off
+			  HAL_GPIO_WritePin(MOC3041_GPIO_Port, MOC3041_Pin, GPIO_PIN_SET);
+			  Amplifire.Mute(true);
+		  }
+	  }
+
+
+	  if (Encoder.StateChanged())
+	  {
+		  if (Encoder.GetDiff() > 0)
+			  Amplifire.MasterVolumeInc();
+		  else
+			  Amplifire.MasterVolumeDec();
+
+		  sprintf(Display.StringData1, "Volume");
+		  sprintf(Display.StringData2, "%d4", Amplifire.GetMasterVolume());
+		  Display.UpdateDisplay();
+	  }
+
+
+	  if (encButton.Pressed())
+	  {
+		  MainMenu.NextItem();
+		  sprintf(Display.StringData1, MainMenu.CurrentMenutext().c_str());
+		  Display.UpdateDisplay();
+	  }
+	  
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

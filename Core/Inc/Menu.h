@@ -18,7 +18,7 @@ public:
 	std::string CurrentMenutext(void);
 private:
 	uint8_t CurrentItem;
-	std::string MenuItems[6];
+	std::string MenuItems[8];
 };
 
 #endif /* MENU_H_ */
